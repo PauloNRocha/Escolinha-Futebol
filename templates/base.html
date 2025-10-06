@@ -59,7 +59,7 @@
                 {% if current_user.has_permission('turmas') %}
                   <li>
                     <a href="{{ url_for('list_turmas') }}" class="{% if request.endpoint in ['list_turmas', 'edit_turma'] %}active{% endif %}">
-                      <img src="{{ url_for('static', filename='img/icon_dashboard.svg') }}" alt="Categorias" />
+                      <img src="{{ url_for('static', filename='img/icon_categories.svg') }}" alt="Categorias" />
                       <span>Categorias</span>
                     </a>
                   </li>
@@ -81,7 +81,7 @@
                   </li>
                   <li>
                     <a href="{{ url_for('financeiro') }}" class="{% if request.endpoint == 'financeiro' %}active{% endif %}">
-                      <img src="{{ url_for('static', filename='img/icon_dashboard.svg') }}" alt="Financeiro" />
+                      <img src="{{ url_for('static', filename='img/icon_finance.svg') }}" alt="Financeiro" />
                       <span>Financeiro</span>
                     </a>
                   </li>
@@ -117,17 +117,17 @@
               <h1 class="title text-2xl">{{ current_user.username|capitalize }}</h1>
               <p class="subtitle">E.F.C. · Projeto Social Meu Primeiro Passo</p>
             </div>
-            <div class="flex items-center gap-4">
-              <button type="button" class="btn btn-secondary btn-icon" data-toggle-sidebar title="Alternar menu">
+            <div class="flex items-center gap-3 md:gap-4">
+              <button type="button" class="btn btn-surface btn-icon" data-toggle-sidebar title="Alternar menu">
                 <img src="{{ url_for('static', filename='img/icon_menu.svg') }}" alt="Menu" width="20" height="20" />
               </button>
-              <div class="text-right hidden md:block">
-                <div class="text-sm text-slate-500">{{ current_user.role_label }}</div>
+              <div class="text-right header-user">
+                <div class="text-xs uppercase-label">Administrador</div>
                 <div class="font-semibold">{{ current_user.username }}</div>
               </div>
-              <div class="avatar">{{ current_user.username[:1]|upper }}</div>
+              <div class="avatar" title="{{ current_user.username }}">{{ current_user.username[:1]|upper }}</div>
               <form action="{{ url_for('logout') }}" method="post" title="Encerrar sessão">
-                <button type="submit" class="btn btn-secondary btn-icon">
+                <button type="submit" class="btn btn-surface btn-icon">
                   <img src="{{ url_for('static', filename='img/icon_logout.svg') }}" alt="Sair" width="20" height="20" />
                 </button>
               </form>

@@ -19,9 +19,38 @@
     });
   }
 
+  const media = window.matchMedia('(max-width: 1024px)');
+  const applySidebarState = () => {
+    if (media.matches) {
+      document.body.classList.add('sidebar-hidden');
+      document.body.classList.remove('sidebar-collapsed');
+    } else {
+      document.body.classList.remove('sidebar-hidden');
+    }
+  };
+
+  applySidebarState();
+  if (media.addEventListener) {
+    media.addEventListener('change', applySidebarState);
+  } else if (media.addListener) {
+    media.addListener(applySidebarState);
+  }
+
   document.querySelectorAll('[data-toggle-sidebar]').forEach((button) => {
     button.addEventListener('click', () => {
-      document.body.classList.toggle('sidebar-collapsed');
+      if (media.matches) {
+        document.body.classList.toggle('sidebar-hidden');
+      } else {
+        document.body.classList.toggle('sidebar-collapsed');
+      }
+    });
+  });
+
+  document.querySelectorAll('.sidebar nav a').forEach((link) => {
+    link.addEventListener('click', () => {
+      if (media.matches) {
+        document.body.classList.add('sidebar-hidden');
+      }
     });
   });
 })();

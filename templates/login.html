@@ -13,12 +13,14 @@
 
       <form action="{{ url_for('login') }}" method="post" class="login-form" data-login-form>
         <div class="input-group">
+          <label class="sr-only" for="username">Usuário</label>
           <span class="input-group__icon">
             <img src="{{ url_for('static', filename='img/icon_user.svg') }}" alt="Usuário" />
           </span>
           <input type="text" id="username" name="username" placeholder="Usuário" required autofocus data-invalid-message="Informe seu usuário." data-required-message="Informe seu usuário." />
         </div>
         <div class="input-group">
+          <label class="sr-only" for="password">Senha</label>
           <span class="input-group__icon">
             <img src="{{ url_for('static', filename='img/icon_lock.svg') }}" alt="Senha" />
           </span>

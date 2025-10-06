@@ -23,20 +23,25 @@
     </article>
 
     <article class="card">
-      <h2 class="text-xl font-semibold mb-2">Backup do banco de dados</h2>
-      <p class="text-sm text-slate-500">Faça o backup manual do arquivo SQLite. É rápido e seguro.</p>
-      {% if pode_fazer_backup %}
-        <div class="backup-card mt-4">
-          <p class="text-sm text-slate-600">Ao acionar o backup, uma cópia do arquivo <strong>escolinha.db</strong> será criada em <code>database/backups</code> com data e hora.</p>
-          <form action="{{ url_for('backup_banco') }}" method="post" class="mt-4">
-            <button class="btn btn-secondary" type="submit">Fazer backup agora</button>
-          </form>
+      <div class="flex items-start justify-between mb-3 flex-wrap gap-3">
+        <div>
+          <h2 class="text-xl font-semibold">Backup do banco de dados</h2>
+          <p class="text-sm text-slate-500">Salve uma cópia local do arquivo <strong>escolinha.db</strong> para proteger seus dados.</p>
         </div>
+        {% if pode_fazer_backup %}
+          <form action="{{ url_for('backup_banco') }}" method="post">
+            <button class="btn btn-primary" type="submit">Fazer backup agora</button>
+          </form>
+        {% endif %}
+      </div>
+
+      {% if pode_fazer_backup %}
+        <p class="text-sm text-slate-500 mb-4">Os arquivos são gravados em <code>database/backups</code>. Faça download para guardar em mídia externa ou restaure diretamente.</p>
         {% if backups %}
           <div class="mt-6">
             <h3 class="text-sm uppercase-label">Backups recentes</h3>
             <div class="table-scroll mt-3">
-              <table>
+              <table class="backup-table">
                 <thead>
                   <tr>
                     <th>Arquivo</th>
@@ -53,8 +58,10 @@
                       <td>{{ backup.tamanho|format_filesize }}</td>
                       <td class="text-right">
                         <div class="table-actions justify-end">
-                          <a class="btn btn-secondary" href="{{ url_for('download_backup', filename=backup.nome) }}">Download</a>
-                          <form action="{{ url_for('restore_backup', filename=backup.nome) }}" method="post" onsubmit="return confirm('Restaurar o backup {{ backup.nome }}? Esta ação substituirá o banco atual.');">
+                          <a class="btn btn-surface btn-icon" href="{{ url_for('download_backup', filename=backup.nome) }}" title="Baixar backup">
+                            <img src="{{ url_for('static', filename='img/icon_download.svg') }}" alt="Download" />
+                          </a>
+                          <form action="{{ url_for('restore_backup', filename=backup.nome) }}" method="post" onsubmit="return confirm('Restaurar o backup {{ backup.nome }}? Esta ação substituirá o banco atual.');" title="Restaurar backup">
                             <button type="submit" class="btn btn-primary">Restaurar</button>
                           </form>
                         </div>
