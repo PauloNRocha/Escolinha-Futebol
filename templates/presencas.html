@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+{% block title %}Treinos · Projeto Social Meu Primeiro Passo{% endblock %}
+{% block content %}
+  <section class="space-y-6">
+    <article class="card">
+      <div class="flex items-center justify-between mb-4">
+        <div>
+          <h1 class="text-xl font-semibold">Registro de treinos</h1>
+          <p class="text-sm text-slate-500">Selecione a categoria e a data para lançar a presença.</p>
+        </div>
+        <form action="{{ url_for('presencas') }}" method="get" class="flex items-center gap-3">
+          <select name="turma_id" required data-auto-submit data-invalid-message="Selecione uma categoria.">
+            <option value="">Selecione a categoria</option>
+            {% for turma in turmas %}
+              <option value="{{ turma.id }}" {% if turma.id == turma_selecionada_id %}selected{% endif %}>{{ turma.nome }} · {{ turma.categoria }}</option>
+            {% endfor %}
+          </select>
+          <input type="date" name="data" value="{{ data_selecionada }}" data-auto-submit />
+        </form>
+      </div>
+      {% if turma_selecionada %}
+        <form action="{{ url_for('presencas') }}" method="post" class="space-y-4">
+          <input type="hidden" name="turma_id" value="{{ turma_selecionada.id }}" />
+          <input type="hidden" name="data" value="{{ data_selecionada }}" />
+          <div class="presence-grid">
+            {% for item in registros %}
+              <label class="presence-item">
+                <div>
+                  <div class="font-semibold">{{ item.aluno.nome }}</div>
+                  <div class="text-xs text-slate-500">Responsável: {{ item.aluno.responsavel }}</div>
+                </div>
+                <div class="flex items-center gap-3">
+                  <span class="text-sm text-slate-500">Presente</span>
+                  <input type="checkbox" name="presencas" value="{{ item.aluno.id }}" {% if item.presente %}checked{% endif %} id="presenca-{{ item.aluno.id }}" />
+                  <span class="toggle"></span>
+                </div>
+              </label>
+            {% else %}
+              <div class="table-empty" style="grid-column: 1 / -1;">Nenhum jogador cadastrado na categoria selecionada.</div>
+            {% endfor %}
+          </div>
+          {% if registros %}
+            <div class="flex justify-end">
+              <button type="submit" class="btn btn-primary">Salvar treinos</button>
+            </div>
+          {% endif %}
+        </form>
+      {% else %}
+        <div class="table-empty">Selecione uma categoria para visualizar os jogadores.</div>
+      {% endif %}
+    </article>
+
+    <article class="card">
+      <div class="flex items-center justify-between mb-3">
+        <div>
+          <h2 class="text-xl font-semibold">Histórico recente de treinos</h2>
+          <p class="text-sm text-slate-500">Últimos registros de treinos</p>
+        </div>
+      </div>
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>Data</th>
+              <th>Categoria</th>
+              <th>Jogador</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for entrada in historico %}
+              <tr>
+                <td>{{ entrada.data|format_date('%d/%m/%Y') }}</td>
+                <td>{{ entrada.turma }}</td>
+                <td>{{ entrada.aluno }}</td>
+                <td>
+                  <span class="badge-pill {% if entrada.presente %}status-active{% else %}status-inactive{% endif %}">
+                    {% if entrada.presente %}Presente{% else %}Ausente{% endif %}
+                  </span>
+                </td>
+              </tr>
+            {% else %}
+              <tr>
+                <td colspan="4" class="table-empty">Nenhum registro de treino ainda.</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </article>
+  </section>
+{% endblock %}

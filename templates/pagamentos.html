@@ -1,0 +1,121 @@
+{% extends "base.html" %}
+{% block title %}Mensalidades · Projeto Social Meu Primeiro Passo{% endblock %}
+{% block content %}
+  <section class="space-y-6">
+    <article class="card">
+      <div class="flex items-center justify-between mb-4">
+        <div>
+          <h1 class="text-xl font-semibold">Controle de mensalidades</h1>
+          <p class="text-sm text-slate-500">Acompanhe mensalidades pagas e pendentes por mês.</p>
+        </div>
+        <form action="{{ url_for('pagamentos') }}" method="get" class="flex items-center gap-3">
+          <label for="competencia" class="uppercase-label">Competência</label>
+          <input type="month" id="competencia" name="competencia" value="{{ competencia }}" data-auto-submit data-invalid-message="Selecione o mês de referência." data-required-message="Selecione o mês de referência." />
+        </form>
+      </div>
+      <div class="cards-grid">
+        <div class="card-compact bg-success rounded-xl">
+          <div class="uppercase-label text-white">Pagos</div>
+          <div class="text-2xl font-bold">{{ resumo.pagos }}</div>
+          <div class="text-sm text-white/80">{{ resumo.valor_pago|format_currency }}</div>
+        </div>
+        <div class="card-compact bg-danger rounded-xl">
+          <div class="uppercase-label text-white">Pendentes</div>
+          <div class="text-2xl font-bold">{{ resumo.pendentes }}</div>
+          <div class="text-sm text-white/80">{{ resumo.valor_pendente|format_currency }}</div>
+        </div>
+        <div class="card-compact bg-warning rounded-xl">
+          <div class="uppercase-label text-white">Percentual pago</div>
+          <div class="text-2xl font-bold">{{ resumo.percentual }}%</div>
+          <div class="text-sm text-white/80">Previsto: {{ resumo.valor_previsto|format_currency }}</div>
+        </div>
+      </div>
+      <div class="table-scroll mt-6">
+        <table>
+          <thead>
+            <tr>
+              <th>Jogador</th>
+              <th>Turma</th>
+              <th>Responsável</th>
+              <th>Mensalidade</th>
+              <th>Status</th>
+              <th class="text-right">Ação</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for linha in pagamentos %}
+              <tr>
+                <td>{{ linha.aluno.nome }}</td>
+                <td>{{ linha.aluno.turma.nome if linha.aluno.turma else '—' }}</td>
+                <td>{{ linha.aluno.responsavel }}</td>
+                <td>{{ linha.valor|format_currency }}</td>
+                <td>
+                  <span class="badge-pill {% if linha.pago %}status-active{% else %}status-inactive{% endif %}">
+                    {% if linha.pago %}Pago{% else %}Pendente{% endif %}
+                  </span>
+                  {% if linha.data_pagamento %}
+                    <div class="text-xs text-slate-500">Pago em {{ linha.data_pagamento|format_date('%d/%m/%Y') }}</div>
+                  {% endif %}
+                </td>
+                <td class="text-right">
+                  <div class="table-actions justify-end">
+                    <form action="{{ url_for('pagamentos') }}" method="post">
+                      <input type="hidden" name="aluno_id" value="{{ linha.aluno.id }}" />
+                      <input type="hidden" name="competencia" value="{{ competencia }}" />
+                      {% if linha.pago %}
+                        <input type="hidden" name="status" value="pendente" />
+                        <button class="btn btn-secondary" type="submit">Marcar pendente</button>
+                      {% else %}
+                        <input type="hidden" name="status" value="pago" />
+                        <button class="btn btn-primary" type="submit">Marcar pago</button>
+                      {% endif %}
+                    </form>
+                  </div>
+                </td>
+              </tr>
+            {% else %}
+              <tr>
+                <td colspan="6" class="table-empty">Nenhum jogador cadastrado.</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </article>
+
+    <article class="card">
+      <div class="flex items-center justify-between mb-4">
+        <div>
+          <h2 class="text-xl font-semibold">Histórico de pendências</h2>
+          <p class="text-sm text-slate-500">Últimas mensalidades em aberto</p>
+        </div>
+      </div>
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>Jogador</th>
+              <th>Mês</th>
+              <th>Valor</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for pendencia in historico_pendencias %}
+              <tr>
+                <td>{{ pendencia.aluno }}</td>
+                <td>{{ pendencia.mes }}</td>
+                <td>{{ pendencia.valor|format_currency }}</td>
+                <td><span class="tag tag-red">Pendente</span></td>
+              </tr>
+            {% else %}
+              <tr>
+                <td colspan="4" class="table-empty">Nenhuma pendência recente.</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </article>
+  </section>
+{% endblock %}

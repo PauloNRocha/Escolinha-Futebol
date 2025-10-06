@@ -1,0 +1,138 @@
+{% extends "base.html" %}
+{% block title %}Dashboard · Projeto Social Meu Primeiro Passo{% endblock %}
+{% block content %}
+  <section class="space-y-8">
+    <div class="cards-grid">
+      <article class="card stat-card">
+        <div class="uppercase-label">Total de jogadores</div>
+        <div class="flex items-end justify-between mt-4">
+          <div>
+            <div class="text-2xl font-bold">{{ stats.total_alunos }}</div>
+            <div class="text-sm text-slate-500">{{ stats.ativos }} ativos · {{ stats.inativos }} inativos</div>
+            <div class="text-sm text-slate-500">{{ stats.projeto_social }} no projeto social</div>
+          </div>
+          <div class="badge-pill badge-outline">Jogadores</div>
+        </div>
+      </article>
+      <article class="card stat-card">
+        <div class="uppercase-label">Categorias</div>
+        <div class="flex items-end justify-between mt-4">
+          <div>
+            <div class="text-2xl font-bold">{{ stats.total_turmas }}</div>
+            <div class="text-sm text-slate-500">{{ stats.turmas_sem_alunos }} sem jogadores cadastrados</div>
+          </div>
+          <div class="badge-pill badge-outline">Categorias</div>
+        </div>
+      </article>
+      <article class="card stat-card">
+        <div class="uppercase-label">Mensalidades</div>
+        <div class="flex items-end justify-between mt-4">
+          <div>
+            <div class="text-2xl font-bold">{{ stats.pagamentos.pagos }}</div>
+            <div class="text-sm text-slate-500">{{ stats.pagamentos.pendentes }} pendentes</div>
+            <div class="text-sm text-slate-500 mt-1">Recebido: {{ stats.pagamentos.valor_pago|format_currency }}</div>
+            <div class="text-xs text-slate-400">Previsto: {{ stats.pagamentos.valor_previsto|format_currency }} · Falta: {{ stats.pagamentos.valor_pendente|format_currency }}</div>
+          </div>
+          <div class="badge-pill badge-outline">Financeiro</div>
+        </div>
+      </article>
+      <article class="card stat-card">
+        <div class="uppercase-label">Presença nos treinos</div>
+        <div class="flex items-end justify-between mt-4">
+          <div>
+            <div class="text-2xl font-bold">{{ stats.presencas.percentual }}%</div>
+            <div class="text-sm text-slate-500">{{ stats.presencas.total_presentes }} presenças registradas</div>
+          </div>
+          <div class="badge-pill badge-outline">Treinos</div>
+        </div>
+      </article>
+    </div>
+
+    <div class="grid md:grid-cols-2 gap-6">
+      <article class="card">
+        <div class="flex items-center justify-between mb-4">
+          <div>
+            <h2 class="text-xl font-semibold">Evolução mensal</h2>
+            <p class="text-sm text-slate-500">Jogadores presentes x Mensalidades pagas</p>
+          </div>
+        </div>
+        {% if chart_data %}
+          <canvas data-chart width="420" height="260"></canvas>
+          <script>
+            window.dashboardChartData = {
+              labels: [{% for ponto in chart_data %}'{{ ponto.mes_curto }}'{% if not loop.last %}, {% endif %}{% endfor %}],
+              datasets: [
+                { label: 'Presenças', backgroundColor: '#0057B7', data: [{% for ponto in chart_data %}{{ ponto.presentes }}{% if not loop.last %}, {% endif %}{% endfor %}] },
+                { label: 'Mensalidades pagas', backgroundColor: '#4A90E2', data: [{% for ponto in chart_data %}{{ ponto.pagos }}{% if not loop.last %}, {% endif %}{% endfor %}] }
+              ]
+            };
+          </script>
+        {% else %}
+          <div class="table-empty">Ainda não há dados suficientes para o gráfico.</div>
+        {% endif %}
+      </article>
+
+      <article class="card">
+        <div class="flex items-center justify-between mb-3">
+          <div>
+            <h2 class="text-xl font-semibold">Próximos aniversários</h2>
+            <p class="text-sm text-slate-500">Nos próximos 30 dias</p>
+          </div>
+        </div>
+        {% if aniversarios %}
+          <ul class="space-y-4">
+            {% for aluno in aniversarios %}
+              <li class="flex items-center justify-between">
+                <div>
+                  <div class="font-semibold">{{ aluno.nome }}</div>
+                  <div class="text-sm text-slate-500">{{ aluno.dias_para_aniversario }} dias · {{ aluno.data|format_date('%d/%m') }}</div>
+                </div>
+                <span class="badge-pill status-active">{{ aluno.turma }}</span>
+              </li>
+            {% endfor %}
+          </ul>
+        {% else %}
+          <div class="table-empty">Nenhum aniversário próximo.</div>
+        {% endif %}
+      </article>
+    </div>
+
+    <article class="card">
+      <div class="flex items-center justify-between mb-4">
+        <div>
+          <h2 class="text-xl font-semibold">Mensalidades pendentes</h2>
+          <p class="text-sm text-slate-500">Últimos jogadores com pendências</p>
+        </div>
+        <a href="{{ url_for('pagamentos') }}" class="btn btn-secondary">Ver todos</a>
+      </div>
+      {% if stats.pagamentos.ultimos_pendentes %}
+        <div class="table-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th>Jogador</th>
+                <th>Turma</th>
+                <th>Mês</th>
+                <th>Valor</th>
+                <th class="text-right">Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for pendencia in stats.pagamentos.ultimos_pendentes %}
+                <tr>
+                  <td>{{ pendencia.aluno }}</td>
+                  <td>{{ pendencia.turma }}</td>
+                  <td>{{ pendencia.mes }}</td>
+                  <td>{{ pendencia.valor|format_currency }}</td>
+                  <td class="text-right"><span class="tag tag-red">Pendente</span></td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <div class="table-empty">Sem pendências recentes 🎉</div>
+      {% endif %}
+    </article>
+  </section>
+{% endblock %}

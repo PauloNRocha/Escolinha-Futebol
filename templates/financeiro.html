@@ -1,0 +1,172 @@
+{% extends "base.html" %}
+{% block title %}Financeiro · Projeto Social Meu Primeiro Passo{% endblock %}
+{% block content %}
+  <section class="space-y-6">
+    <div class="cards-grid">
+      <article class="card stat-card">
+        <div class="uppercase-label">Recebido no mês</div>
+        <div class="mt-4">
+          <div class="text-2xl font-bold">{{ total_pago|format_currency }}</div>
+          <p class="text-sm text-slate-500">Competência {{ mes_atual|format_date('%m/%Y') }}</p>
+        </div>
+      </article>
+      <article class="card stat-card">
+        <div class="uppercase-label">Previsto no mês</div>
+        <div class="mt-4">
+          <div class="text-2xl font-bold">{{ total_previsto|format_currency }}</div>
+          <p class="text-sm text-slate-500">Total esperado dos alunos ativos</p>
+        </div>
+      </article>
+      <article class="card stat-card">
+        <div class="uppercase-label">Falta receber</div>
+        <div class="mt-4">
+          <div class="text-2xl font-bold">{{ total_pendente|format_currency }}</div>
+          <p class="text-sm text-slate-500">Pendências do mês corrente</p>
+        </div>
+      </article>
+      <article class="card stat-card">
+        <div class="uppercase-label">Projeto social</div>
+        <div class="mt-4">
+          <div class="text-2xl font-bold">{{ alunos_projeto|length }}</div>
+          <p class="text-sm text-slate-500">Alunos isentos de mensalidade</p>
+        </div>
+      </article>
+    </div>
+
+    <div class="grid md:grid-cols-2 gap-6">
+      <article class="card">
+        <header class="flex items-center justify-between mb-3">
+          <div>
+            <h2 class="text-xl font-semibold">Vencendo nesta semana</h2>
+            <p class="text-sm text-slate-500">Mensalidades com vencimento nos próximos 7 dias</p>
+          </div>
+          <a href="{{ url_for('pagamentos') }}" class="btn btn-secondary">Ir para pagamentos</a>
+        </header>
+        {% if vencendo_semana %}
+          <ul class="space-y-3">
+            {% for item in vencendo_semana %}
+              <li class="flex items-center justify-between">
+                <div>
+                  <div class="font-semibold">{{ item.aluno }}</div>
+                  <div class="text-xs text-slate-500">{{ item.turma }} · vence em {{ item.vencimento|format_date('%d/%m') }} ({{ item.dias }} dias)</div>
+                </div>
+                <div class="text-right">
+                  <span class="badge-pill badge-outline">{{ item.valor|format_currency }}</span>
+                </div>
+              </li>
+            {% endfor %}
+          </ul>
+        {% else %}
+          <div class="table-empty">Nenhuma mensalidade vence nesta semana.</div>
+        {% endif %}
+      </article>
+
+      <article class="card">
+        <header class="flex items-center justify-between mb-3">
+          <div>
+            <h2 class="text-xl font-semibold">Mensalidades vencidas</h2>
+            <p class="text-sm text-slate-500">Alunos com pagamento em atraso</p>
+          </div>
+        </header>
+        {% if vencidas %}
+          <ul class="space-y-3">
+            {% for item in vencidas %}
+              <li class="flex items-center justify-between">
+                <div>
+                  <div class="font-semibold">{{ item.aluno }}</div>
+                  <div class="text-xs text-slate-500">{{ item.turma }} · vencida em {{ item.vencimento|format_date('%d/%m') }} · {{ item.dias_atraso }} dias em atraso</div>
+                </div>
+                <div class="text-right">
+                  <span class="badge-pill tag-red">{{ item.valor|format_currency }}</span>
+                </div>
+              </li>
+            {% endfor %}
+          </ul>
+        {% else %}
+          <div class="table-empty">Nenhuma mensalidade em atraso. Excelente!</div>
+        {% endif %}
+      </article>
+    </div>
+
+    <article class="card">
+      <header class="flex items-center justify-between mb-4">
+        <div>
+          <h2 class="text-xl font-semibold">Histórico financeiro</h2>
+          <p class="text-sm text-slate-500">Comparativo dos últimos 6 meses</p>
+        </div>
+      </header>
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>Mês</th>
+              <th>Previsto</th>
+              <th>Recebido</th>
+              <th>Pendente</th>
+              <th class="text-right">% Pago</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for linha in historico %}
+              <tr>
+                <td>{{ linha.label }}</td>
+                <td>{{ linha.valor_previsto|format_currency }}</td>
+                <td>{{ linha.valor_pago|format_currency }}</td>
+                <td>{{ linha.valor_pendente|format_currency }}</td>
+                <td class="text-right">{{ linha.percentual }}%</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </article>
+
+    <article class="card">
+      <header class="flex items-center justify-between mb-3">
+        <div>
+          <h2 class="text-xl font-semibold">Entradas recentes</h2>
+          <p class="text-sm text-slate-500">Últimos pagamentos confirmados</p>
+        </div>
+      </header>
+      {% if entradas_recentes %}
+        <ul class="space-y-3">
+          {% for registro in entradas_recentes %}
+            <li class="flex items-center justify-between">
+              <div>
+                <div class="font-semibold">{{ registro.aluno.nome }}</div>
+                <div class="text-xs text-slate-500">Competência {{ registro.competencia|format_date('%m/%Y') }} · pago em {{ registro.data_pagamento|format_date('%d/%m/%Y') }}</div>
+              </div>
+              <span class="badge-pill status-active">{{ registro.valor|format_currency }}</span>
+            </li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <div class="table-empty">Nenhum pagamento registrado recentemente.</div>
+      {% endif %}
+    </article>
+
+    <article class="card">
+      <header class="flex items-center justify-between mb-3">
+        <div>
+          <h2 class="text-xl font-semibold">Projeto social</h2>
+          <p class="text-sm text-slate-500">Alunos assistidos sem cobrança de mensalidade</p>
+        </div>
+      </header>
+      {% if alunos_projeto %}
+        <ul class="space-y-3">
+          {% for aluno in alunos_projeto %}
+            <li class="flex items-center justify-between">
+              <div>
+                <div class="font-semibold">{{ aluno.nome }}</div>
+                <div class="text-xs text-slate-500">{{ aluno.turma.nome if aluno.turma else 'Sem turma definida' }} · Responsável: {{ aluno.responsavel }}</div>
+              </div>
+              <span class="badge-pill badge-outline">Projeto social</span>
+            </li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <div class="table-empty">Nenhum aluno marcado como projeto social no momento.</div>
+      {% endif %}
+    </article>
+  </section>
+{% endblock %}

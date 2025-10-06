@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+{% block title %}Categorias · Projeto Social Meu Primeiro Passo{% endblock %}
+{% block content %}
+  {% set form_action = url_for('list_turmas') %}
+  {% if turma_edit %}
+    {% set form_action = url_for('edit_turma', turma_id=turma_edit.id) %}
+  {% endif %}
+  <section class="grid md:grid-cols-2 gap-6">
+    <article class="card">
+      <div class="flex items-center justify-between mb-4">
+        <div>
+          <h1 class="text-xl font-semibold">{% if turma_edit %}Editar categoria{% else %}Nova categoria{% endif %}</h1>
+          <p class="text-sm text-slate-500">Cadastre as categorias e horários de treino.</p>
+        </div>
+        {% if turma_edit %}
+          <a href="{{ url_for('list_turmas') }}" class="btn btn-secondary">Cancelar</a>
+        {% endif %}
+      </div>
+      <form action="{{ form_action }}" method="post" class="form-grid">
+        <div>
+          <label for="nome">Nome da categoria</label>
+          <input type="text" id="nome" name="nome" value="{{ turma_edit.nome if turma_edit else '' }}" required data-invalid-message="Informe o nome da turma." data-required-message="Informe o nome da turma." />
+        </div>
+        <div>
+          <label for="categoria">Categoria</label>
+          <input type="text" id="categoria" name="categoria" placeholder="Sub-10, Sub-12..." value="{{ turma_edit.categoria if turma_edit else '' }}" required data-invalid-message="Informe a categoria da turma." data-required-message="Informe a categoria da turma." />
+        </div>
+        <div>
+          <label for="dias_horario">Dias e horário</label>
+          <input type="text" id="dias_horario" name="dias_horario" placeholder="Terça e Quinta · 18h às 19h" value="{{ turma_edit.dias_horario if turma_edit else '' }}" required data-invalid-message="Informe os dias e horários da turma." data-required-message="Informe os dias e horários da turma." />
+        </div>
+        <div>
+          <label for="local_treino">Local de treino</label>
+          <input type="text" id="local_treino" name="local_treino" placeholder="Campo A" value="{{ turma_edit.local_treino if turma_edit else '' }}" required data-invalid-message="Informe o local de treino." data-required-message="Informe o local de treino." />
+        </div>
+        <div class="flex justify-end">
+          <button type="submit" class="btn btn-primary">{% if turma_edit %}Salvar turma{% else %}Cadastrar turma{% endif %}</button>
+        </div>
+      </form>
+    </article>
+
+    <article class="card">
+      <div class="table-toolbar">
+        <div>
+          <h2 class="text-xl font-semibold">Categorias cadastradas</h2>
+          <p class="text-sm text-slate-500">{{ turmas|length }} categorias no sistema</p>
+        </div>
+      </div>
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>Nome</th>
+              <th>Categoria</th>
+              <th>Horários</th>
+              <th class="text-right">Alunos</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for turma in turmas %}
+              <tr>
+                <td>{{ turma.nome }}</td>
+                <td>{{ turma.categoria }}</td>
+                <td>{{ turma.dias_horario }}</td>
+                <td class="text-right">{{ turma.alunos|length }}</td>
+                <td>
+                  <div class="table-actions">
+                    <a class="btn btn-secondary" href="{{ url_for('edit_turma', turma_id=turma.id) }}">Editar</a>
+                    <form action="{{ url_for('delete_turma', turma_id=turma.id) }}" method="post" onsubmit="return confirm('Excluir categoria? Jogadores ficarão sem categoria.');">
+                      <button class="btn btn-danger" type="submit">Excluir</button>
+                    </form>
+                  </div>
+                </td>
+              </tr>
+            {% else %}
+              <tr>
+                <td colspan="5" class="table-empty">Nenhuma categoria cadastrada.</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </article>
+  </section>
+{% endblock %}

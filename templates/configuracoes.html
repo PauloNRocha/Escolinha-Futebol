@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% block title %}Configurações · Projeto Social Meu Primeiro Passo{% endblock %}
+{% block content %}
+  <section class="grid md:grid-cols-2 gap-6">
+    <article class="card">
+      <h1 class="text-xl font-semibold mb-2">Alterar senha</h1>
+      <p class="text-sm text-slate-500 mb-4">Atualize a senha do administrador para manter o acesso seguro.</p>
+      <form action="{{ url_for('configuracoes') }}" method="post" class="space-y-4">
+        <div>
+          <label for="senha_atual">Senha atual</label>
+          <input type="password" name="senha_atual" id="senha_atual" required />
+        </div>
+        <div>
+          <label for="nova_senha">Nova senha</label>
+          <input type="password" name="nova_senha" id="nova_senha" minlength="6" required data-invalid-message="A nova senha deve ter ao menos 6 caracteres." />
+        </div>
+        <div>
+          <label for="confirmacao_senha">Confirmar nova senha</label>
+          <input type="password" name="confirmacao_senha" id="confirmacao_senha" minlength="6" required data-invalid-message="Repita a senha com pelo menos 6 caracteres." />
+        </div>
+        <button type="submit" class="btn btn-primary">Salvar nova senha</button>
+      </form>
+    </article>
+
+    <article class="card">
+      <h2 class="text-xl font-semibold mb-2">Backup do banco de dados</h2>
+      <p class="text-sm text-slate-500">Faça o backup manual do arquivo SQLite. É rápido e seguro.</p>
+      {% if pode_fazer_backup %}
+        <div class="backup-card mt-4">
+          <p class="text-sm text-slate-600">Ao acionar o backup, uma cópia do arquivo <strong>escolinha.db</strong> será criada em <code>database/backups</code> com data e hora.</p>
+          <form action="{{ url_for('backup_banco') }}" method="post" class="mt-4">
+            <button class="btn btn-secondary" type="submit">Fazer backup agora</button>
+          </form>
+        </div>
+        {% if backups %}
+          <div class="mt-6">
+            <h3 class="text-sm uppercase-label">Backups recentes</h3>
+            <div class="table-scroll mt-3">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Arquivo</th>
+                    <th>Criado em</th>
+                    <th>Tamanho</th>
+                    <th class="text-right">Ações</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for backup in backups %}
+                    <tr>
+                      <td>{{ backup.nome }}</td>
+                      <td>{{ backup.data|format_date('%d/%m/%Y %H:%M') }}</td>
+                      <td>{{ backup.tamanho|format_filesize }}</td>
+                      <td class="text-right">
+                        <div class="table-actions justify-end">
+                          <a class="btn btn-secondary" href="{{ url_for('download_backup', filename=backup.nome) }}">Download</a>
+                          <form action="{{ url_for('restore_backup', filename=backup.nome) }}" method="post" onsubmit="return confirm('Restaurar o backup {{ backup.nome }}? Esta ação substituirá o banco atual.');">
+                            <button type="submit" class="btn btn-primary">Restaurar</button>
+                          </form>
+                        </div>
+                      </td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        {% endif %}
+      {% else %}
+        <div class="alert alert-info mt-4">
+          <span class="badge-number">🔒</span>
+          <div>
+            <strong>Somente administradores</strong> podem gerar backups. Solicite a um usuário administrador quando necessário.
+          </div>
+        </div>
+      {% endif %}
+    </article>
+  </section>
+{% endblock %}

@@ -1,0 +1,150 @@
+{% extends "base.html" %}
+{% block title %}Alunos · Projeto Social Meu Primeiro Passo{% endblock %}
+{% block content %}
+  {% set form_action = url_for('list_alunos') %}
+  {% if aluno_edit %}
+    {% set form_action = url_for('edit_aluno', aluno_id=aluno_edit.id) %}
+  {% endif %}
+  <section class="grid md:grid-cols-2 gap-6">
+    <article class="card">
+      <div class="flex items-center justify-between mb-4">
+        <div>
+          <h1 class="text-xl font-semibold">{% if aluno_edit %}Editar jogador{% else %}Novo jogador{% endif %}</h1>
+          <p class="text-sm text-slate-500">Cadastre jogadores e vincule-os às categorias.</p>
+        </div>
+        {% if aluno_edit %}
+          <a href="{{ url_for('list_alunos') }}" class="btn btn-secondary">Cancelar</a>
+        {% endif %}
+      </div>
+      <form action="{{ form_action }}" method="post" class="form-grid two-col">
+        <div>
+          <label for="nome">Nome completo</label>
+          <input type="text" name="nome" id="nome" value="{{ aluno_edit.nome if aluno_edit else '' }}" required data-invalid-message="Informe o nome completo." data-required-message="Informe o nome completo." />
+        </div>
+        <div>
+          <label for="idade">Idade <span class="text-xs text-slate-500">(preencha manualmente ou informe a data de nascimento)</span></label>
+          <input type="number" name="idade" id="idade" min="4" max="18" value="{{ aluno_edit.idade if aluno_edit else '' }}" required data-invalid-message="Informe uma idade entre 4 e 18 anos." data-required-message="Informe a idade do aluno." />
+        </div>
+        <div>
+          <label for="responsavel">Responsável</label>
+          <input type="text" name="responsavel" id="responsavel" value="{{ aluno_edit.responsavel if aluno_edit else '' }}" required data-invalid-message="Informe o nome do responsável." data-required-message="Informe o nome do responsável." />
+        </div>
+        <div>
+          <label for="telefone">Telefone</label>
+          <input type="tel" name="telefone" id="telefone" pattern="[0-9()\-\s+]{8,}" value="{{ aluno_edit.telefone if aluno_edit else '' }}" placeholder="(11) 99999-9999" required data-invalid-message="Informe um telefone válido, incluindo DDD." data-required-message="Informe o telefone do responsável." inputmode="tel" data-mask="phone" />
+        </div>
+        <div>
+          <label for="turma">Turma</label>
+          <select name="turma_id" id="turma" required data-invalid-message="Selecione uma turma." data-required-message="Selecione uma turma.">
+            <option value="">Selecione uma turma</option>
+            {% for turma in turmas %}
+              <option value="{{ turma.id }}" {% if aluno_edit and aluno_edit.turma_id == turma.id %}selected{% endif %}>{{ turma.nome }} · {{ turma.categoria }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div>
+          <label for="status">Status</label>
+          <select name="status" id="status" required data-invalid-message="Informe o status do aluno." data-required-message="Informe o status do aluno.">
+            <option value="ativo" {% if aluno_edit and aluno_edit.status == 'ativo' %}selected{% endif %}>Ativo</option>
+            <option value="inativo" {% if aluno_edit and aluno_edit.status == 'inativo' %}selected{% endif %}>Inativo</option>
+          </select>
+        </div>
+        <div>
+          <label for="valor_mensalidade">Valor da mensalidade (R$)</label>
+          <input type="number" step="0.01" min="0" name="valor_mensalidade" id="valor_mensalidade" value="{{ aluno_edit.valor_mensalidade if aluno_edit else '' }}" required data-invalid-message="Informe o valor da mensalidade." data-required-message="Informe o valor da mensalidade." inputmode="decimal" />
+        </div>
+        <div>
+          <label for="data_nascimento">Data de nascimento <span class="text-xs text-slate-500">(opcional)</span></label>
+          <input type="date" name="data_nascimento" id="data_nascimento" value="{{ aluno_edit.data_nascimento|format_date('%Y-%m-%d') if aluno_edit and aluno_edit.data_nascimento else '' }}" min="{{ idade_limits.min|format_date('%Y-%m-%d') }}" max="{{ idade_limits.max|format_date('%Y-%m-%d') }}" data-age-source data-age-target="#idade" data-invalid-message="Selecione uma data entre {{ idade_limits.min|format_date('%d/%m/%Y') }} e {{ idade_limits.max|format_date('%d/%m/%Y') }}." />
+        </div>
+        <div class="md:flex md:flex-row md:items-center gap-3">
+          <label class="flex items-center gap-2" for="projeto_social">
+            <input type="checkbox" id="projeto_social" name="projeto_social" {% if aluno_edit and aluno_edit.projeto_social %}checked{% endif %} data-social-toggle="#valor_mensalidade" />
+            <span>Jogador do projeto social (isentar mensalidade)</span>
+          </label>
+        </div>
+        <div class="md:flex md:flex-row md:items-center justify-end gap-3">
+          <button type="submit" class="btn btn-primary">{% if aluno_edit %}Salvar alterações{% else %}Cadastrar aluno{% endif %}</button>
+        </div>
+        <div class="md:grid-cols-1" style="grid-column: 1 / -1;">
+          <label for="observacoes">Observações</label>
+          <textarea name="observacoes" id="observacoes" placeholder="Informações adicionais">{{ aluno_edit.observacoes if aluno_edit else '' }}</textarea>
+        </div>
+      </form>
+    </article>
+
+    <article class="card">
+      <div class="table-toolbar">
+        <div>
+          <h2 class="text-xl font-semibold">Lista de jogadores</h2>
+          <p class="text-sm text-slate-500">Total: {{ alunos|length }} jogadores cadastrados</p>
+        </div>
+        <div class="flex items-center gap-3">
+          <form action="{{ url_for('export_alunos') }}" method="post">
+            <button type="submit" class="btn btn-secondary">Exportar CSV</button>
+          </form>
+        </div>
+      </div>
+      <div class="search-input">
+        <input type="search" placeholder="Buscar por nome ou responsável" data-table-search data-table-target="#tabela-alunos" />
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-4.35-4.35M11.25 18a6.75 6.75 0 1 0 0-13.5 6.75 6.75 0 0 0 0 13.5z" />
+        </svg>
+      </div>
+      <div class="table-scroll mt-4">
+        <table id="tabela-alunos">
+          <thead>
+            <tr>
+              <th>Jogador</th>
+              <th>Turma</th>
+              <th>Responsável</th>
+              <th>Telefone</th>
+              <th>Mensalidade</th>
+              <th>Status</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for aluno in alunos %}
+              <tr>
+                <td>
+                  <div class="font-semibold">{{ aluno.nome }}</div>
+                  {% if aluno.data_nascimento %}
+                    <div class="text-xs text-slate-500">Aniversário: {{ aluno.data_nascimento|format_date('%d/%m') }}</div>
+                  {% endif %}
+                </td>
+                <td>{{ aluno.turma.nome if aluno.turma else '—' }}</td>
+                <td>{{ aluno.responsavel }}</td>
+                <td>{{ aluno.telefone }}</td>
+                <td>
+                  {% if aluno.projeto_social %}
+                    <span class="badge-pill badge-outline">Projeto social</span>
+                  {% else %}
+                    {{ aluno.valor_mensalidade|format_currency }}
+                  {% endif %}
+                </td>
+                <td>
+                  <span class="badge-pill {% if aluno.status == 'ativo' %}status-active{% else %}status-inactive{% endif %}">
+                    {{ aluno.status|capitalize }}
+                  </span>
+                </td>
+                <td>
+                  <div class="table-actions">
+                    <a class="btn btn-secondary" href="{{ url_for('edit_aluno', aluno_id=aluno.id) }}">Editar</a>
+                    <form action="{{ url_for('delete_aluno', aluno_id=aluno.id) }}" method="post" onsubmit="return confirm('Deseja remover este jogador?');">
+                      <button type="submit" class="btn btn-danger">Excluir</button>
+                    </form>
+                  </div>
+                </td>
+              </tr>
+            {% else %}
+              <tr>
+                <td colspan="7" class="table-empty">Nenhum jogador cadastrado.</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </article>
+  </section>
+{% endblock %}

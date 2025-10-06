@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+{% block title %}Usuários · Projeto Social Meu Primeiro Passo{% endblock %}
+{% block content %}
+  <section class="grid md:grid-cols-2 gap-6">
+    <article class="card">
+      <div class="flex items-center justify-between mb-4">
+        <div>
+          <h1 class="text-xl font-semibold">Novo usuário</h1>
+          <p class="text-sm text-slate-500">Crie acessos adicionais selecionando o perfil adequado.</p>
+        </div>
+      </div>
+      <form action="{{ url_for('manage_users') }}" method="post" class="form-grid">
+        <input type="hidden" name="action" value="create" />
+        <div>
+          <label for="username">Usuário</label>
+          <input type="text" id="username" name="username" placeholder="ex: joao" minlength="3" required data-invalid-message="Informe ao menos 3 caracteres." data-required-message="Informe um usuário." />
+        </div>
+        <div>
+          <label for="role">Perfil</label>
+          <select name="role" id="role" required data-invalid-message="Selecione um perfil de acesso." data-required-message="Selecione um perfil de acesso.">
+            {% for value, label in role_options %}
+              {% if value != 'admin' %}
+                <option value="{{ value }}">{{ label }}</option>
+              {% endif %}
+            {% endfor %}
+            <option value="admin">Administrador</option>
+          </select>
+        </div>
+        <div>
+          <label for="password">Senha</label>
+          <input type="password" id="password" name="password" minlength="6" required data-invalid-message="A senha deve ter ao menos 6 caracteres." data-required-message="Informe a senha." />
+        </div>
+        <div>
+          <label for="confirm_password">Confirmar senha</label>
+          <input type="password" id="confirm_password" name="confirm_password" minlength="6" required data-invalid-message="Repita a senha com pelo menos 6 caracteres." data-required-message="Repita a senha." />
+        </div>
+        <button type="submit" class="btn btn-primary w-full">Cadastrar usuário</button>
+      </form>
+      <div class="alert alert-info mt-6">
+        <span class="badge-number">ℹ️</span>
+        <div class="space-y-2">
+          <strong>Perfis disponíveis:</strong>
+          <div class="flex flex-wrap gap-2">
+            <span class="badge-pill badge-outline">Administrador</span>
+            <span class="badge-pill badge-outline">Gestor</span>
+            <span class="badge-pill badge-outline">Instrutor</span>
+          </div>
+          <ul class="text-sm text-slate-500 space-y-1">
+            <li><strong>Administrador</strong> — acesso total, pode gerenciar usuários e backups.</li>
+            <li><strong>Gestor</strong> — gerencia alunos, turmas e pagamentos.</li>
+            <li><strong>Instrutor</strong> — registra presenças e consulta o painel.</li>
+          </ul>
+        </div>
+      </div>
+    </article>
+
+    <article class="card">
+      <div class="table-toolbar">
+        <div>
+          <h2 class="text-xl font-semibold">Usuários cadastrados</h2>
+          <p class="text-sm text-slate-500">Gerencie perfis, redefina senhas ou remova acessos.</p>
+        </div>
+      </div>
+      <div class="table-scroll">
+        <table class="users-table">
+          <thead>
+            <tr>
+              <th>Usuário</th>
+              <th>Perfil</th>
+              <th>Criado em</th>
+              <th class="text-right">Ações</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for usuario in usuarios %}
+              <tr>
+                <td>{{ usuario.username }}</td>
+                <td>{{ usuario.role_label }}</td>
+                <td>{{ usuario.created_at|format_date('%d/%m/%Y') }}</td>
+                <td>
+                  <div class="user-actions">
+                    <form action="{{ url_for('manage_users') }}" method="post" class="user-form">
+                      <input type="hidden" name="action" value="update_role" />
+                      <input type="hidden" name="user_id" value="{{ usuario.id }}" />
+                      <select name="role" {% if usuario.id == current_user.id and admin_count == 1 %}disabled{% endif %} data-required-message="Selecione um perfil de acesso." data-invalid-message="Selecione um perfil de acesso.">
+                        {% for value, label in role_options %}
+                          <option value="{{ value }}" {% if usuario.role == value %}selected{% endif %}>{{ label }}</option>
+                        {% endfor %}
+                      </select>
+                      <button type="submit" class="btn btn-secondary" {% if usuario.id == current_user.id and admin_count == 1 %}disabled{% endif %}>Atualizar perfil</button>
+                    </form>
+                    <form action="{{ url_for('manage_users') }}" method="post" class="user-form">
+                      <input type="hidden" name="action" value="reset_password" />
+                      <input type="hidden" name="user_id" value="{{ usuario.id }}" />
+                      <input type="password" name="password" placeholder="Nova senha" minlength="6" required data-invalid-message="A senha deve ter ao menos 6 caracteres." data-required-message="Informe a nova senha." />
+                      <input type="password" name="confirm_password" placeholder="Confirmar" minlength="6" required data-invalid-message="Repita a senha com pelo menos 6 caracteres." data-required-message="Repita a senha." />
+                      <button type="submit" class="btn btn-primary">Resetar senha</button>
+                    </form>
+                    <form action="{{ url_for('manage_users') }}" method="post" onsubmit="return confirm('Remover usuário {{ usuario.username }}?');">
+                      <input type="hidden" name="action" value="delete" />
+                      <input type="hidden" name="user_id" value="{{ usuario.id }}" />
+                      {% set bloqueado = (usuario.id == current_user.id) or (usuario.role == 'admin' and admin_count == 1) %}
+                      <button type="submit" class="btn btn-danger" {% if bloqueado %}disabled{% endif %}>Remover</button>
+                    </form>
+                  </div>
+                </td>
+              </tr>
+            {% else %}
+              <tr>
+                <td colspan="4" class="table-empty">Nenhum usuário cadastrado.</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </article>
+  </section>
+{% endblock %}

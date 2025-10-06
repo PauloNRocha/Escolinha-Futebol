@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% block title %}Login · Projeto Social Meu Primeiro Passo{% endblock %}
+
+{% block auth %}
+  <div class="login-page">
+    <div class="login-page__card" data-login-card>
+      <div class="login-page__logo">
+        <img src="{{ url_for('static', filename='img/logo_efc.png') }}" alt="Logo Escolinha de Futebol da Chácara" />
+      </div>
+      <h1 class="login-page__title">Escolinha de Futebol da Chácara</h1>
+      <p class="login-page__subtitle">Projeto Social &ldquo;Meu Primeiro Passo&rdquo; · Acesso exclusivo do time administrativo</p>
+
+      <form action="{{ url_for('login') }}" method="post" class="login-form" data-login-form>
+        <div class="input-group">
+          <span class="input-group__icon">
+            <img src="{{ url_for('static', filename='img/icon_user.svg') }}" alt="Usuário" />
+          </span>
+          <input type="text" id="username" name="username" placeholder="Usuário" required autofocus data-invalid-message="Informe seu usuário." data-required-message="Informe seu usuário." />
+        </div>
+        <div class="input-group">
+          <span class="input-group__icon">
+            <img src="{{ url_for('static', filename='img/icon_lock.svg') }}" alt="Senha" />
+          </span>
+          <input type="password" id="password" name="password" placeholder="Senha" required data-invalid-message="Informe sua senha." data-required-message="Informe sua senha." />
+        </div>
+        <button type="submit" class="btn btn-primary btn-login" data-login-submit>
+          <span class="btn-label">Entrar no sistema</span>
+          <span class="btn-spinner" aria-hidden="true"></span>
+        </button>
+      </form>
+
+      <div class="login-info" role="note">
+        <img src="{{ url_for('static', filename='img/icon_info.svg') }}" alt="Informação" />
+        <div>
+          <strong>Acesso padrão:</strong> usuário <code>admin</code> · senha <code>admin123</code>. Altere após o primeiro acesso.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function(){
+      const form = document.querySelector('[data-login-form]');
+      const button = document.querySelector('[data-login-submit]');
+      if (!form || !button) { return; }
+      form.addEventListener('submit', () => {
+        button.classList.add('is-loading');
+        button.setAttribute('disabled', 'disabled');
+      });
+    })();
+  </script>
+{% endblock %}

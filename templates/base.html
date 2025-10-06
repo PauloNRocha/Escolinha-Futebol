@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{% block title %}Projeto Social Meu Primeiro Passo{% endblock %}</title>
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/logo_efc.png') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/tailwind.css') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/custom.css') }}" />
+    <script defer src="{{ url_for('static', filename='js/chart.min.js') }}"></script>
+    <script defer src="{{ url_for('static', filename='js/main.js') }}"></script>
+    <script defer src="{{ url_for('static', filename='js/app.js') }}"></script>
+  </head>
+  <body>
+    <div class="loader" data-loader>
+      <img src="{{ url_for('static', filename='img/logo_efc.png') }}" alt="Carregando" class="loader__logo" />
+    </div>
+    <div class="toast-container">
+      {% with messages = get_flashed_messages(with_categories=True) %}
+        {% if messages %}
+          {% for category, message in messages %}
+            <div class="toast {% if category == 'success' %}toast-success{% elif category == 'error' %}toast-error{% endif %}">
+              <span>{{ message }}</span>
+              <button data-dismiss>&times;</button>
+            </div>
+          {% endfor %}
+        {% endif %}
+      {% endwith %}
+    </div>
+
+    {% if current_user.is_authenticated %}
+      <div class="flex min-h-screen">
+        <aside class="sidebar">
+          <div class="brand">
+            <img src="{{ url_for('static', filename='img/logo_efc.png') }}" alt="Logo Escolinha de Futebol da Chácara" />
+            <div class="brand-text">
+              <div class="text-xs uppercase tracking-wide text-slate-300">Escolinha de Futebol da Chácara</div>
+              <div class="text-lg font-semibold text-white">Projeto Social Meu Primeiro Passo</div>
+            </div>
+          </div>
+          <nav class="space-y-4 sidebar-nav">
+            <div>
+              <span class="uppercase-label">Painel</span>
+              <ul class="space-y-4 mt-2">
+                <li>
+                  <a href="{{ url_for('dashboard') }}" class="{% if request.endpoint == 'dashboard' %}active{% endif %}">
+                    <img src="{{ url_for('static', filename='img/icon_dashboard.svg') }}" alt="Dashboard" />
+                    <span>Dashboard</span>
+                  </a>
+                </li>
+                {% if current_user.has_permission('alunos') %}
+                  <li>
+                    <a href="{{ url_for('list_alunos') }}" class="{% if request.endpoint in ['list_alunos', 'edit_aluno'] %}active{% endif %}">
+                      <img src="{{ url_for('static', filename='img/icon_players.svg') }}" alt="Jogadores" />
+                      <span>Jogadores</span>
+                    </a>
+                  </li>
+                {% endif %}
+                {% if current_user.has_permission('turmas') %}
+                  <li>
+                    <a href="{{ url_for('list_turmas') }}" class="{% if request.endpoint in ['list_turmas', 'edit_turma'] %}active{% endif %}">
+                      <img src="{{ url_for('static', filename='img/icon_dashboard.svg') }}" alt="Categorias" />
+                      <span>Categorias</span>
+                    </a>
+                  </li>
+                {% endif %}
+                {% if current_user.has_permission('presencas') %}
+                  <li>
+                    <a href="{{ url_for('presencas') }}" class="{% if request.endpoint == 'presencas' %}active{% endif %}">
+                      <img src="{{ url_for('static', filename='img/icon_training.svg') }}" alt="Treinos" />
+                      <span>Treinos</span>
+                    </a>
+                  </li>
+                {% endif %}
+                {% if current_user.has_permission('pagamentos') %}
+                  <li>
+                    <a href="{{ url_for('pagamentos') }}" class="{% if request.endpoint == 'pagamentos' %}active{% endif %}">
+                      <img src="{{ url_for('static', filename='img/icon_payment.svg') }}" alt="Mensalidades" />
+                      <span>Mensalidades</span>
+                    </a>
+                  </li>
+                  <li>
+                    <a href="{{ url_for('financeiro') }}" class="{% if request.endpoint == 'financeiro' %}active{% endif %}">
+                      <img src="{{ url_for('static', filename='img/icon_dashboard.svg') }}" alt="Financeiro" />
+                      <span>Financeiro</span>
+                    </a>
+                  </li>
+                {% endif %}
+                <li>
+                  <a href="{{ url_for('configuracoes') }}" class="{% if request.endpoint == 'configuracoes' %}active{% endif %}">
+                    <img src="{{ url_for('static', filename='img/icon_settings.svg') }}" alt="Configurações" />
+                    <span>Configurações</span>
+                  </a>
+                </li>
+                {% if current_user.has_permission('users') %}
+                  <li>
+                    <a href="{{ url_for('manage_users') }}" class="{% if request.endpoint == 'manage_users' %}active{% endif %}">
+                      <img src="{{ url_for('static', filename='img/icon_users.svg') }}" alt="Usuários" />
+                      <span>Usuários</span>
+                    </a>
+                  </li>
+                {% endif %}
+              </ul>
+            </div>
+            <div class="mt-auto">
+              <form action="{{ url_for('logout') }}" method="post">
+                <button type="submit" class="btn logout-button w-full">Sair</button>
+              </form>
+            </div>
+          </nav>
+        </aside>
+
+        <div class="flex flex-col w-full">
+          <header class="header flex items-center justify-between px-8 py-6">
+            <div>
+              <div class="uppercase-label">Bem-vindo</div>
+              <h1 class="title text-2xl">{{ current_user.username|capitalize }}</h1>
+              <p class="subtitle">E.F.C. · Projeto Social Meu Primeiro Passo</p>
+            </div>
+            <div class="flex items-center gap-4">
+              <button type="button" class="btn btn-secondary btn-icon" data-toggle-sidebar title="Alternar menu">
+                <img src="{{ url_for('static', filename='img/icon_menu.svg') }}" alt="Menu" width="20" height="20" />
+              </button>
+              <div class="text-right hidden md:block">
+                <div class="text-sm text-slate-500">{{ current_user.role_label }}</div>
+                <div class="font-semibold">{{ current_user.username }}</div>
+              </div>
+              <div class="avatar">{{ current_user.username[:1]|upper }}</div>
+              <form action="{{ url_for('logout') }}" method="post" title="Encerrar sessão">
+                <button type="submit" class="btn btn-secondary btn-icon">
+                  <img src="{{ url_for('static', filename='img/icon_logout.svg') }}" alt="Sair" width="20" height="20" />
+                </button>
+              </form>
+            </div>
+          </header>
+
+          <main class="main-content">
+            {% block content %}{% endblock %}
+            <footer class="footer">© 2025 Escolinha de Futebol da Chácara · Projeto Social Meu Primeiro Passo</footer>
+          </main>
+        </div>
+      </div>
+    {% else %}
+      {% block auth %}{% endblock %}
+    {% endif %}
+  </body>
+</html>
